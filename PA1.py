@@ -1,11 +1,13 @@
-# homework3.py -> PA1.py
-# author: Nick Cochran
+# PA1.py
+# author: Nick Cochran,
 
 import math
+import csv
 
 # TODO
 # figure out how to handle multivariate
 # --> work out the equation first, then implement it
+# implement pulling in the data from a file at a later time (probably csv)
 
 
 
@@ -33,7 +35,7 @@ def gradient_descent(b, Ys, *ms_and_xs):
             m = m - alpha * (m_gradient / len(X))
             b = b - alpha * (b_gradient / len(X))
     else: # multivariate
-        X = Xs[0]
+        X = Xs[0] # included here to avoid errors until we implement multivariate
         for i in range(0, max_iter):
             m_gradient, b_gradient = 0, 0
             for s in range(0, num_samples):
@@ -72,7 +74,9 @@ def linear_regression(b, Ms, Xs):
     return sum + b
 
 def main():
+    # add functionality to read in data from file
+
     gradient_descent()
-    # print(mse())
+
 
 main()
