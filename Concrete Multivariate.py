@@ -2,11 +2,8 @@
 # Becky Shofner
 # Student #513917
 
-
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
 
 # Normalized features with alpha = 0.1 and iterations = 10000:
 # Multivariate Predictors: Updated parameters m: [ 61.21979373  34.59009987  15.88069725 -45.0341261    8.49825487
@@ -29,10 +26,7 @@ for column in df_normalized.columns:
 
 print(df_normalized.head())
 
-# Question 2.3
-# code for gradient descent of multivariate linear regression model
-# sample data with multiple features and targets
-
+# Question 2.3: code for gradient descent of multivariate linear regression model
 # List of predictor variables
 predictors = ['Cement (component 1)(kg in a m^3 mixture)',
               'Blast Furnace Slag (component 2)(kg in a m^3 mixture)',
@@ -47,9 +41,8 @@ X = df_normalized[predictors].to_numpy()
 # X = df[predictors].to_numpy()
 
 # target values
-y= df_normalized['Concrete compressive strength(MPa, megapascals) '].to_numpy()
+y = df_normalized['Concrete compressive strength(MPa, megapascals) '].to_numpy()
 # y = df['Concrete compressive strength(MPa, megapascals) '].to_numpy()
-
 
 # code for gradient descent of multivariate linear regression model
 # initialize with ones - one weight for each feature
@@ -60,55 +53,54 @@ alpha = 0.1
 
 # single step in gradient descent
 max_iter = 10000
-#
-# for iteration in range(max_iter):
-#     # account for all features and weights and set to 0
-#     m_gradients = np.zeros(len(m))
-#     b_gradient = 0
-#
-#     # loop through each sample
-#     for index in range(len(X_samples)):
-#         X = X_samples[index]
-#         y = y_targets[index]
-#
-#         # calculate prediction error with dot product
-#         # prediction = sum(m[j] * X[j] for j in range(len(m))) + b
-#         prediction: float | int | Any = np.dot(m, X) + b
-#         error = y - prediction
-#
-#         # loop through all features in sample and calculate error and gradient for both m and b
-#         for j in range(len(m)):
-#             m_gradients[j] += -2 * X[j] * error
-#
-#         b_gradient += -2 * error
-#
-#     # update m and b with learning rate and gradients
-#     for j in range(len(m)):
-#         m[j] = m[j] - alpha * m_gradients[j] / len(X_samples)
-#
-#     b = b - alpha * b_gradient / len(X_samples)
 
-# faster calculations using vector operations
 for iteration in range(max_iter):
-    y_pred = np.dot(X, m) + b
+    # account for all features and weights and set to 0
+    m_gradients = np.zeros(len(m))
+    b_gradient = 0
 
-    # Calculate errors
-    error = y - y_pred
+    # loop through each sample
+    for index in range(len(X)):
+        x_sample = X[index]
+        y_sample = y[index]
 
-    # Calculate gradients for weights and bias
-    m_gradient = -2 * np.dot(X.T, error) / len(y)
-    b_gradient = -2 * np.sum(error) / len(y)
+        # prediction = sum(m[j] * X[j] for j in range(len(m))) + b
+        # calculate prediction error with dot product
+        prediction = np.dot(m, x_sample) + b
+        error = y_sample - prediction
 
-    # Update weights and bias
-    m = m - alpha * m_gradient
-    b = b - alpha * b_gradient
+        # loop through all features in sample and calculate error and gradient for both m and b
+        for j in range(len(m)):
+            m_gradients[j] += -2 * x_sample[j] * error
+        b_gradient += -2 * error
+
+    # update m and b with learning rate and gradients
+    for j in range(len(m)):
+        m[j] = m[j] - alpha * m_gradients[j] / len(X)
+
+    b = b - alpha * b_gradient / len(X)
+
+# # faster calculations using vector operations
+# for iteration in range(max_iter):
+#     y_pred = np.dot(X, m) + b
+#
+#     # Calculate errors
+#     error = y - y_pred
+#
+#     # Calculate gradients for weights and bias
+#     m_gradient = -2 * np.dot(X.T, error) / len(y)
+#     b_gradient = -2 * np.sum(error) / len(y)
+#
+#     # Update weights and bias
+#     m = m - alpha * m_gradient
+#     b = b - alpha * b_gradient
 
 
 # evaluate model at end of gradient descent with variance explained
 # y_pred = m * X + b
 y_pred = np.dot(X, m) + b
 mse = np.mean((y - y_pred) ** 2)
-ve = 1 - np.sum((y - y_pred) ** 2) / np.sum((y - np.mean(y)) ** 2)
+ve = 1 - mse / (np.sum((y - np.mean(y)) ** 2) / len(y))
 
 print(f'Updated parameters m: {m}, b: {b}, MSE: {mse}, VE: {ve:.4f}')
 

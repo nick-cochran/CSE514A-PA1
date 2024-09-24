@@ -34,7 +34,7 @@ X = df_normalized[predictors].to_numpy()
 y = df_normalized['Concrete compressive strength(MPa, megapascals) '].to_numpy()
 
 # Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=130, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=900, test_size=130, random_state=41)
 
 # Your learned weights from gradient descent
 m = np.array([61.21979373, 34.59009987, 15.88069725, -45.0341261, 8.49825487, 11.78385602, 11.24234976, 41.6119085])
@@ -55,7 +55,7 @@ plt.scatter(y_train, y_train_pred, color='blue', label='Training data')
 plt.plot([min(y_train), max(y_train)], [min(y_train), max(y_train)], color='red', linestyle='--', label='Fit')
 plt.xlabel('Actual Compressive Strength')
 plt.ylabel('Predicted Compressive Strength')
-plt.title('Training Data: Actual vs Predicted')
+plt.title('Normalized Multivariate Training Data: Actual vs Predicted')
 plt.legend()
 plt.show()
 
@@ -64,10 +64,10 @@ plt.scatter(y_test, y_test_pred, color='green', label='Testing data')
 plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red', linestyle='--', label='Fit')
 plt.xlabel('Actual Compressive Strength')
 plt.ylabel('Predicted Compressive Strength')
-plt.title('Testing Data: Actual vs Predicted')
+plt.title('Normalized Multivariate Testing Data: Actual vs Predicted')
 plt.legend()
 plt.show()
 
 mse = np.mean((y_test - y_test_pred) ** 2)
-ve = 1 - np.sum((y_test - y_test_pred) ** 2) / np.sum((y_test - np.mean(y_test)) ** 2)
+ve = 1 - mse / (np.sum((y_test - np.mean(y_test)) ** 2) / len(y_test))
 print(f'Model performance: MSE: {mse}, VE: {ve:.4f}')
