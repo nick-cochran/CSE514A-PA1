@@ -1,15 +1,15 @@
 # 514A Data Mining PA1 C
 # Nick Cochran and Becky Shofner
 
+# DataRobot: https://www.datarobot.com/blog/multiple-regression-using-statsmodels/
 
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
 import statsmodels.api as sm
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
-from patsy.highlevel import dmatrices, dmatrix
-# import patsy. as pt
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 # Normalized features with alpha = 0.1 and iterations = 10000:
 # Multivariate Predictors: Updated parameters m: [ 61.21979373  34.59009987  15.88069725 -45.0341261    8.49825487
@@ -22,16 +22,6 @@ from patsy.highlevel import dmatrices, dmatrix
 # load excel file
 df = pd.read_excel('Concrete_Data.xls', sheet_name='Sheet1')
 
-# create copy to normalize variables
-# df_normalized = df.copy()
-#
-# for column in df_normalized.columns:
-#     # normalize all variables but response variable
-#     if column != 'Concrete compressive strength(MPa, megapascals) ':
-#         df_normalized[column] = df_normalized[column] / df_normalized[column].abs().max()
-#
-# print(df_normalized.head())
-
 # List of predictor variables
 predictors = ['Cement (component 1)(kg in a m^3 mixture)',
               'Blast Furnace Slag (component 2)(kg in a m^3 mixture)',
@@ -41,69 +31,66 @@ predictors = ['Cement (component 1)(kg in a m^3 mixture)',
               'Coarse Aggregate  (component 6)(kg in a m^3 mixture)',
               'Fine Aggregate (component 7)(kg in a m^3 mixture)',
               'Age (day)']
+
 pres = ['Cement', 'Slag', 'FlyAsh', 'Water', 'Superplasticizer', 'CoarseAggregate', 'FineAggregate', 'Age']
 target_value = ['Concrete compressive strength(MPa, megapascals) ']
 
-# X = df_normalized[predictors].to_numpy()
 X = df[predictors].to_numpy()
+y = df[target_value].to_numpy().flatten()
 
-# y = dmatrix(target_value, data=df, return_type='dataframe')
-# X = dmatrix(predictors, data=df, return_type='dataframe')
+# standardization of features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
 
-# target values
-# y= df_normalized['Concrete compressive strength(MPa, megapascals) '].to_numpy()
-y = df['Concrete compressive strength(MPa, megapascals) '].to_numpy()
+# normalization of features
+scaler = MinMaxScaler()
+X_normalized = scaler.fit_transform(X)
+
+# log transform
+X_log = np.log(X+1)
+
+# print p-values for data set
+X_all = sm.add_constant(X_log)
+model = sm.OLS(y, X_all).fit()
+print(model.summary())
+print(f"\np-values: {model.pvalues}")
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=900, test_size=130, random_state=0)
 
+# add constant for bias
+X_train = sm.add_constant(X_train)
+X_test = sm.add_constant(X_test)
 
-model = sm.OLS(y_train, X_train).fit()
-print(model.summary())
+model_train = sm.OLS(y_train, X_train).fit()
+print(model_train.summary())
+
+y_pred_train = model_train.predict(X_train)
+mse_train = mean_squared_error(y_train, y_pred_train)
+ve_train = model_train.rsquared
+print(f'Train MSE: {mse_train:.4f} and VE: {ve_train:.4f}')
 
 print('\n\n\n Testing Data: \n\n\n')
 
-model = sm.OLS(y_test, X_test).fit()
-print(model.summary())
+model_test = sm.OLS(y_test, X_test).fit()
+print(model_test.summary())
 
-y_pred = model.predict(X_test)
-mse = mean_squared_error(y_test, y_pred)
-print(f'MSE: {mse:.4f}')
+y_pred_test = model_test.predict(X_test)
+mse_test = mean_squared_error(y_test, y_pred_test)
+ve_test = model_test.rsquared
+print(f'Test MSE: {mse_test:.4f} and VE: {ve_test:.4f}')
 
+# plot training data
+plt.scatter(y_train, y_pred_train, alpha=0.7, color='blue')
+plt.title('Multivariate Raw Training Data: Actual vs Predicted')
+plt.xlabel('Actual Compressive Strength')
+plt.ylabel('Predicted Compressive Strength')
+plt.plot([y_train.min(), y_train.max()], [y_train.min(), y_train.max()], lw=2, color='red', linestyle='--')
+plt.show()
 
-
-
-# # code for gradient descent of multivariate linear regression model
-# # initialize with ones - one weight for each feature
-# m = np.ones(X.shape[1])
-# b = 1
-# # learning rate
-# alpha = 0.1
-#
-# # single step in gradient descent
-# max_iter = 10000
-#
-# # faster calculations using vector operations
-# for iteration in range(max_iter):
-#     y_pred = np.dot(X, m) + b
-#
-#     # Calculate errors
-#     error = y - y_pred
-#
-#     # Calculate gradients for weights and bias
-#     m_gradient = -2 * np.dot(X.T, error) / len(y)
-#     b_gradient = -2 * np.sum(error) / len(y)
-#
-#     # Update weights and bias
-#     m = m - alpha * m_gradient
-#     b = b - alpha * b_gradient
-#
-#
-# # evaluate model at end of gradient descent with variance explained
-# # y_pred = m * X + b
-# y_pred = np.dot(X, m) + b
-# mse = np.mean((y - y_pred) ** 2)
-# ve = 1 - np.sum((y - y_pred) ** 2) / np.sum((y - np.mean(y)) ** 2)
-#
-# print(f'Updated parameters m: {m}, b: {b}, MSE: {mse}, VE: {ve:.4f}')
-
-
+# plot test data
+plt.scatter(y_test, y_pred_test, alpha=0.7, color='green')
+plt.title('Multivariate Raw Testing Data: Actual vs Predicted')
+plt.xlabel('Actual Compressive Strength')
+plt.ylabel('Predicted Compressive Strength')
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], lw=2, color='red', linestyle='--')
+plt.show()

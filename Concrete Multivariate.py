@@ -41,8 +41,7 @@ X = df_normalized[predictors].to_numpy()
 # X = df[predictors].to_numpy()
 
 # target values
-y = df_normalized['Concrete compressive strength(MPa, megapascals) '].to_numpy()
-# y = df['Concrete compressive strength(MPa, megapascals) '].to_numpy()
+y = df['Concrete compressive strength(MPa, megapascals) '].to_numpy()
 
 # code for gradient descent of multivariate linear regression model
 # initialize with ones - one weight for each feature

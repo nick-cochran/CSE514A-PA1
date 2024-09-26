@@ -71,3 +71,8 @@ plt.show()
 mse = np.mean((y_test - y_test_pred) ** 2)
 ve = 1 - mse / (np.sum((y_test - np.mean(y_test)) ** 2) / len(y_test))
 print(f'Model performance: MSE: {mse}, VE: {ve:.4f}')
+
+
+mse = np.mean((y_train - y_train_pred) ** 2)
+ve = 1 - mse / (np.sum((y_train - np.mean(y_train)) ** 2) / len(y_train))
+print(f'Model performance: MSE: {mse}, VE: {ve:.4f}')

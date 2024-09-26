@@ -21,7 +21,7 @@ from statistics import LinearRegression
 # Superplasticizer Norm: alpha = 0.01, iterations = 1000
 # Superplasticizer Raw: alpha = 0.01, iterations = 1000
 
-# Coarse Aggregate Norm: alpha = 0.1, iterations = 10000
+# Coarse Aggregate Norm: alpha = 0.1, iterations = 1000
 # Coarse Aggregate Raw: alpha = 0.000001, iterations = 10000000 (No positive VE found)
 
 # Fine Aggregate Norm: alpha = 0.1, iterations = 1000
@@ -41,20 +41,56 @@ df = pd.read_excel('Concrete_Data.xls', sheet_name='Sheet1')
 print(df.columns)
 
 # learning rate
-alpha =  0.00001
+alpha = 0.1
 
 # steps in gradient descent
-max_iter = 10000
+max_iter = 100
 
-X: ndarray = df['Cement (component 1)(kg in a m^3 mixture)'].to_numpy()
+X: ndarray = df['Age (day)'].to_numpy()
 # normalized variable
-# X_norm = df['Cement (component 1)(kg in a m^3 mixture)'] / df['Cement (component 1)(kg in a m^3 mixture)'].abs().max()
+X_norm = X / np.abs(X).max()
 y = df['Concrete compressive strength(MPa, megapascals) '].to_numpy()
 
 # initialize parameters
 m = 1
 b = 1
 
+# Vectorized gradient descent
+for i in range(max_iter):
+    # Calculate predictions
+    y_pred = m * X_norm + b
+
+    # Calculate the error
+    error = y - y_pred
+
+    # Calculate gradients (vectorized)
+    # m_gradient = -2 * np.dot(X, error) / len(X)
+    m_gradient = -2 * np.dot(X_norm, error) / len(X_norm)
+    b_gradient = -2 * np.mean(error)
+
+    # Update m and b
+    m = m - alpha * m_gradient
+    b = b - alpha * b_gradient
+
+# evaluate model at end of gradient descent with variance explained
+y_pred = m * X_norm + b
+mse = np.mean((y - y_pred) ** 2)
+ve = 1 - (mse / (np.sum((y - np.mean(y)) ** 2) / len(y)))
+
+print(f'Predictor: Updated parameters m: {m}, b: {b}, MSE: {mse}, and VE: {ve:.4f}')
+
+# Plot the results
+plt.scatter(X, y, color='green', label='True data')
+plt.plot(X, y_pred, color='red', label='Fitted line')
+plt.xlabel('Age')
+plt.ylabel('Concrete compressive strength (MPa)')
+plt.legend()
+plt.title('Raw Cement Data vs Concrete Compressive Strength')
+plt.show()
+
+
+
+# slower way to calculate gradient descent
 # for i in range(max_iter):
 #     m_gradient = 0
 #     b_gradient = 0
@@ -72,36 +108,3 @@ b = 1
 #     b = b - alpha * b_gradient / len(X)
 #     # m = m - alpha * m_gradient / len(X_norm)
 #     # b = b - alpha * b_gradient / len(X_norm)
-
-# Vectorized gradient descent
-for i in range(max_iter):
-    # Calculate predictions
-    y_pred = m * X + b
-
-    # Calculate the error
-    error = y - y_pred
-
-    # Calculate gradients (vectorized)
-    m_gradient = -2 * np.dot(X, error) / len(X)
-    # m_gradient = -2 * np.dot(X_norm, error) / len(X_norm)
-    b_gradient = -2 * np.mean(error)
-
-    # Update m and b
-    m = m - alpha * m_gradient
-    b = b - alpha * b_gradient
-
-# evaluate model at end of gradient descent with variance explained
-y_pred = m * X + b
-mse = np.mean((y - y_pred) ** 2)
-ve = 1 - (mse / (np.sum((y - np.mean(y)) ** 2) / len(y)))
-
-print(f'Predictor: Updated parameters m: {m}, b: {b}, MSE: {mse}, and VE: {ve:.4f}')
-
-# Plot the results
-plt.scatter(X, y, color='blue', label='True data')
-plt.plot(X, y_pred, color='red', label='Fitted line')
-plt.xlabel('Cement (component 1)(kg in a m^3 mixture)')
-plt.ylabel('Concrete compressive strength (MPa)')
-plt.legend()
-plt.title('Raw Concrete Data vs Concrete Compressive Strength')
-plt.show()
